@@ -21,7 +21,7 @@ npm run dev
 ### Скриншоты
 
 ![](./screenshot_mobile.jpg)
-![](./screenshot_desktop.jpg.jpg)
+![](./screenshot_desktop.jpg)
 
 ### Описание
 
