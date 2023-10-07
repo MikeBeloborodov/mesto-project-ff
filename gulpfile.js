@@ -76,10 +76,10 @@ function clean() {
 
 function watchFiles() {
   gulp.watch(['src/**/*.html'], html);
-  gulp.watch(['src/styles/**/*.scss'], css);
+  gulp.watch(['src/**/*.scss'], css);
   gulp.watch(['src/images/**/*.{jpg,png,svg,gif,ico,webp,avif,svg}'], images);
   gulp.watch(['src/fonts/**/*.{ttf,woff,woff2}'], fonts);
-  gulp.watch(['src/scripts/**/*.{js}'], scripts);
+  gulp.watch(['src/**/*.js'], scripts);
 }
 
 function serve() {
