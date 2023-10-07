@@ -1,6 +1,6 @@
 // selectors
 const cardTemplate = document.querySelector('#card-template').content;
-const placesList = document.querySelector('.places');
+const placesList = document.querySelector('.places__list');
 
 // functions
 function createCard(card, deleteCardFn) {
