@@ -22,10 +22,10 @@ function deleteCard(evt) {
   parent.remove();
 }
 
-// initialization
 function appendCard(item, container) {
   const cardElement = createCard(item, deleteCard);
   container.append(cardElement);
 }
 
+// initialization
 initialCards.forEach(card  => appendCard(card, placesList));
