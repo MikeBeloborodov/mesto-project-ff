@@ -14,8 +14,9 @@ https://github.com/MikeBeloborodov/mesto-project-ff
 ```
 git pull https://github.com/MikeBeloborodov/mesto-project-ff.git
 cd mesto-project-ff
+npm i
+npm run dev
 ```
-Открыть файл index.html.
 
 ### Скриншоты
 
