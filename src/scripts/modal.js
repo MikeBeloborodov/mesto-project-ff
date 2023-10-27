@@ -1,34 +1,26 @@
-const openModal = (element) => {
-  element.classList.toggle("popup_is-opened");
+const openModal = (element, selector) => {
+  element.classList.add(selector);
 };
 
-const closeModal = (element) => {
-  element.classList.remove("popup_is-opened");
+const closeModal = (element, selector) => {
+  element.classList.remove(selector);
   document.removeEventListener("keydown", closeModalOnEscape);
 };
 
-const closeModalOnEscape = (evt) => {
+const closeModalOnEscape = (evt, selector) => {
   if (evt.key === "Escape") {
-    const currentPopup = document.querySelector(".popup_is-opened");
-    currentPopup.classList.toggle("popup_is-opened");
-    document.removeEventListener("keydown", closeModalOnEscape);
-  }
-};
-const fillForm = (form, name, description) => {
-  form.elements.name.value = name;
-  form.elements.description.value = description;
-};
-
-const closeModalOnOverlay = (evt, element) => {
-  if (evt.target === element) {
-    closeModal(element);
+    const currentPopup = document.querySelector("." + selector);
+    console.log(currentPopup);
+    closeModal(currentPopup, selector);
   }
 };
 
-export {
-  openModal,
-  closeModal,
-  closeModalOnEscape,
-  closeModalOnOverlay,
-  fillForm,
+const closeModalOnOverlay = (evt, selector) => {
+  console.log(evt.target);
+  console.log(evt.currentTarget);
+  if (evt.target === evt.currentTarget) {
+    closeModal(evt.currentTarget, selector);
+  }
 };
+
+export { openModal, closeModal, closeModalOnEscape, closeModalOnOverlay };

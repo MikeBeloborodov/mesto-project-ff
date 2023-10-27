@@ -28,21 +28,17 @@ module.exports = {
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
-        use: [
-          {
-            loader: "file-loader",
-            options: { esModule: false, name: "/images/[name].[ext]" },
-          },
-        ],
+        type: "asset/resource",
+        generator: {
+          filename: "images/[name].[hash][ext]",
+        },
       },
       {
         test: /\.(woff(2)?|eot|ttf|otf)$/,
-        use: [
-          {
-            loader: "file-loader",
-            options: { esModule: false, name: "/fonts/[name].[ext]" },
-          },
-        ],
+        type: "asset/resource",
+        generator: {
+          filename: "images/[name].[hash][ext]",
+        },
       },
       {
         test: /\.css$/,
@@ -50,7 +46,7 @@ module.exports = {
           MiniCssExtractPlugin.loader,
           {
             loader: "css-loader",
-            options: { url: false, importLoaders: 1 },
+            options: { importLoaders: 1 },
           },
           "postcss-loader",
         ],
