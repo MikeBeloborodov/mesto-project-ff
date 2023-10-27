@@ -3,7 +3,7 @@ const openModal = (element) => {
 };
 
 const closeModal = (element) => {
-  element.classList.toggle("popup_is-opened");
+  element.classList.remove("popup_is-opened");
   document.removeEventListener("keydown", closeModalOnEscape);
 };
 
@@ -19,4 +19,16 @@ const fillForm = (form, name, description) => {
   form.elements.description.value = description;
 };
 
-export { openModal, closeModal, closeModalOnEscape, fillForm };
+const closeModalOnOverlay = (evt, element) => {
+  if (evt.target === element) {
+    closeModal(element);
+  }
+};
+
+export {
+  openModal,
+  closeModal,
+  closeModalOnEscape,
+  closeModalOnOverlay,
+  fillForm,
+};

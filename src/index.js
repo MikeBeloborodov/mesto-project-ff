@@ -15,6 +15,7 @@ import {
   closeModal,
   openModal,
   closeModalOnEscape,
+  closeModalOnOverlay,
   fillForm,
 } from "./scripts/modal";
 
@@ -30,9 +31,6 @@ const addCardButton = document.querySelector(".profile__add-button");
 const popupNewCard = document.querySelector(".popup_type_new-card");
 const popupNewCardCloseButton = document.querySelector("#new-card-popup-close");
 const popupNewCardForm = document.forms["new-place"];
-
-// initialization
-initialCards.forEach((card) => appendCard(card, placesList));
 
 //functions
 const handleFormSubmit = (evt) => {
@@ -60,9 +58,7 @@ popupProfileCloseButton.addEventListener("click", () => {
 });
 
 popupProfile.addEventListener("click", (evt) => {
-  if (evt.target === popupProfile) {
-    closeModal(popupProfile);
-  }
+  closeModalOnOverlay(evt, popupProfile);
 });
 
 popupProfileForm.addEventListener("submit", handleFormSubmit);
@@ -74,9 +70,7 @@ addCardButton.addEventListener("click", () => {
 });
 
 popupNewCard.addEventListener("click", (evt) => {
-  if (evt.target === popupNewCard) {
-    closeModal(popupNewCard);
-  }
+  closeModalOnOverlay(evt, popupNewCard);
 });
 
 popupNewCardCloseButton.addEventListener("click", () => {
@@ -95,4 +89,8 @@ popupNewCardForm.addEventListener("submit", (evt) => {
   };
   appendCard(newCard, placesList, "start");
   closeModal(popupNewCard);
+  popupNewCardForm.reset();
 });
+
+// initialization
+initialCards.forEach((card) => appendCard(card, placesList));
