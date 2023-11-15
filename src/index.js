@@ -1,7 +1,8 @@
 import "./index.css";
-import { renderCard } from "./scripts/card";
+import { renderCard, likeCard, deleteCard } from "./scripts/card";
 import { initialCards } from "./scripts/cards";
 import { closeModal, openModal, closeModalOnOverlay } from "./scripts/modal";
+import { clearValidation, enableValidation } from "./scripts/validation";
 
 // selectors
 const placesList = document.querySelector(".places__list");
@@ -17,6 +18,15 @@ const popupImageElement = document.querySelector(".popup_type_image");
 const popupImage = popupImageElement.querySelector(".popup__image");
 const popupCaption = popupImageElement.querySelector(".popup__caption");
 
+const validationConfig = {
+  formSelector: ".popup__form",
+  inputSelector: ".popup__input",
+  submitButtonSelector: ".popup__button",
+  inactiveButtonClass: "popup__button_disabled",
+  inputErrorClass: "popup__input_type_error",
+  errorClass: "popup__error_visible",
+};
+
 //functions
 
 // cards
@@ -27,21 +37,13 @@ const openImagePopup = (imageURL, imageAlt, title) => {
   openModal(popupImageElement);
 };
 
-const likeCard = (evt) => {
-  evt.target.classList.toggle("card__like-button_is-active");
-};
-
-const deleteCard = (evt) => {
-  const parent = evt.target.closest(".card");
-  parent.remove();
-};
-
 // profile
 const handleProfileFormSubmit = (evt) => {
   evt.preventDefault();
   profileTitle.textContent = popupProfileForm.name.value;
   profileDescription.textContent = popupProfileForm.description.value;
   closeModal(popupProfile);
+  clearValidation(popupProfile, validationConfig);
 };
 
 const fillProfilePopup = (form, name, description) => {
@@ -58,6 +60,7 @@ popupImageElement.addEventListener("click", (evt) => {
 
 //profile popup
 profileEditButton.addEventListener("click", () => {
+  clearValidation(popupProfile, validationConfig);
   fillProfilePopup(
     popupProfileForm,
     profileTitle.textContent,
@@ -74,6 +77,8 @@ popupProfile.addEventListener("click", (evt) => {
 
 // add card popup
 newCardButton.addEventListener("click", () => {
+  popupNewCardForm.reset();
+  clearValidation(popupNewCard, validationConfig);
   openModal(popupNewCard);
 });
 
@@ -97,6 +102,7 @@ popupNewCardForm.addEventListener("submit", (evt) => {
   );
   closeModal(popupNewCard);
   popupNewCardForm.reset();
+  clearValidation(popupNewCard, validationConfig);
 });
 
 popupNewCard.addEventListener("click", (evt) => {
@@ -114,3 +120,5 @@ document.addEventListener("click", (evt) => {
 initialCards.forEach((card) =>
   renderCard(card, placesList, likeCard, deleteCard, openImagePopup),
 );
+
+enableValidation(validationConfig);

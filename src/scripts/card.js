@@ -2,6 +2,15 @@
 const cardTemplate = document.querySelector("#card-template").content;
 
 // functions
+const likeCard = (evt) => {
+  evt.target.classList.toggle("card__like-button_is-active");
+};
+
+const deleteCard = (evt) => {
+  const parent = evt.target.closest(".card");
+  parent.remove();
+};
+
 const createCard = (card, deleteCardFn, likeCardFn, openFullImageFn) => {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const cardDeleteButton = cardElement.querySelector(".card__delete-button");
@@ -46,4 +55,4 @@ const renderCard = (
   }
 };
 
-export { renderCard };
+export { renderCard, likeCard, deleteCard };
