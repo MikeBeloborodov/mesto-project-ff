@@ -1,8 +1,8 @@
 import "./index.css";
 import { renderCard, likeCard, deleteCard } from "./scripts/card";
-import { initialCards } from "./scripts/cards";
 import { closeModal, openModal, closeModalOnOverlay } from "./scripts/modal";
 import { clearValidation, enableValidation } from "./scripts/validation";
+import { getInitialCards } from "./scripts/api";
 
 // selectors
 const placesList = document.querySelector(".places__list");
@@ -117,8 +117,14 @@ document.addEventListener("click", (evt) => {
 });
 
 // initialization
-initialCards.forEach((card) =>
-  renderCard(card, placesList, likeCard, deleteCard, openImagePopup),
-);
+getInitialCards()
+  .then((result) => {
+    result.forEach((card) => {
+      renderCard(card, placesList, likeCard, deleteCard, openImagePopup);
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 enableValidation(validationConfig);
