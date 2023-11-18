@@ -2,7 +2,7 @@ import "./index.css";
 import { renderCard, likeCard, deleteCard } from "./scripts/card";
 import { closeModal, openModal, closeModalOnOverlay } from "./scripts/modal";
 import { clearValidation, enableValidation } from "./scripts/validation";
-import { getInitialCards } from "./scripts/api";
+import { getInitialInfo, postNewCard, updateUserProfile } from "./scripts/api";
 
 // selectors
 const placesList = document.querySelector(".places__list");
@@ -10,6 +10,7 @@ const popupProfile = document.querySelector(".popup_type_edit");
 const popupProfileForm = document.forms["edit-profile"];
 const profileTitle = document.querySelector(".profile__title");
 const profileDescription = document.querySelector(".profile__description");
+const profileAvatar = document.querySelector(".profile__image");
 const profileEditButton = document.querySelector(".profile__edit-button");
 const newCardButton = document.querySelector(".profile__add-button");
 const popupNewCard = document.querySelector(".popup_type_new-card");
@@ -28,6 +29,24 @@ const validationConfig = {
 };
 
 //functions
+const fillProfileInfo = (userInfo) => {
+  profileTitle.textContent = userInfo.name;
+  profileDescription.textContent = userInfo.about;
+  profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`;
+};
+
+const renderInitialCards = (initialCards, userInfo) => {
+  initialCards.forEach((card) => {
+    renderCard(
+      card,
+      userInfo,
+      placesList,
+      likeCard,
+      deleteCard,
+      openImagePopup,
+    );
+  });
+};
 
 // cards
 const openImagePopup = (imageURL, imageAlt, title) => {
@@ -38,12 +57,20 @@ const openImagePopup = (imageURL, imageAlt, title) => {
 };
 
 // profile
-const handleProfileFormSubmit = (evt) => {
+const handleProfileFormSubmit = async (evt) => {
   evt.preventDefault();
-  profileTitle.textContent = popupProfileForm.name.value;
-  profileDescription.textContent = popupProfileForm.description.value;
-  closeModal(popupProfile);
-  clearValidation(popupProfile, validationConfig);
+  updateUserProfile({
+    name: popupProfileForm.name.value,
+    about: popupProfileForm.description.value,
+  })
+    .then((updatedProfile) => {
+      fillProfileInfo(updatedProfile);
+      closeModal(popupProfile);
+      clearValidation(popupProfile, validationConfig);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 const fillProfilePopup = (form, name, description) => {
@@ -82,27 +109,29 @@ newCardButton.addEventListener("click", () => {
   openModal(popupNewCard);
 });
 
-popupNewCardForm.addEventListener("submit", (evt) => {
+popupNewCardForm.addEventListener("submit", async (evt) => {
   evt.preventDefault();
   const name = popupNewCardForm.elements["place-name"].value;
   const link = popupNewCardForm.elements.link.value;
-  const description = name;
-  const newCard = {
-    name,
-    link,
-    description,
-  };
-  renderCard(
-    newCard,
-    placesList,
-    likeCard,
-    deleteCard,
-    openImagePopup,
-    "start",
-  );
-  closeModal(popupNewCard);
-  popupNewCardForm.reset();
-  clearValidation(popupNewCard, validationConfig);
+  const userInfo = { name: profileTitle.textContent };
+  postNewCard({ name, link })
+    .then((newCard) => {
+      renderCard(
+        newCard,
+        userInfo,
+        placesList,
+        likeCard,
+        deleteCard,
+        openImagePopup,
+        "start",
+      );
+      closeModal(popupNewCard);
+      popupNewCardForm.reset();
+      clearValidation(popupNewCard, validationConfig);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 popupNewCard.addEventListener("click", (evt) => {
@@ -117,11 +146,12 @@ document.addEventListener("click", (evt) => {
 });
 
 // initialization
-getInitialCards()
+getInitialInfo()
   .then((result) => {
-    result.forEach((card) => {
-      renderCard(card, placesList, likeCard, deleteCard, openImagePopup);
-    });
+    const userInfo = result[0];
+    const initialCards = result[1];
+    fillProfileInfo(userInfo);
+    renderInitialCards(initialCards, userInfo);
   })
   .catch((err) => {
     console.log(err);
