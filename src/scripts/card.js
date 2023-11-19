@@ -1,10 +1,43 @@
+import { deleteLike, putLike } from "./api";
+import { openModal } from "./modal";
+
 // selectors
 const cardTemplate = document.querySelector("#card-template").content;
+const popupConfirm = document.querySelector(".popup_type_confirm");
 
 // functions
+const likeCard = async (evt, cardId) => {
+  let currentLikes = evt.target.parentNode.querySelector(".card__like-count");
+
+  if (evt.target.classList.contains("card__like-button_is-active")) {
+    deleteLike(cardId)
+      .then((updatedCard) => {
+        evt.target.classList.remove("card__like-button_is-active");
+        currentLikes.textContent = updatedCard.likes.length;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    putLike(cardId)
+      .then((updatedCard) => {
+        evt.target.classList.add("card__like-button_is-active");
+        currentLikes.textContent = updatedCard.likes.length;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+};
+
+const deleteCard = (evt, cardId) => {
+  openModal(popupConfirm);
+  popupConfirm.dataset.cardId = cardId;
+};
+
 const createCard = (
   card,
-  userInfo,
+  userId,
   deleteCardFn,
   likeCardFn,
   openFullImageFn,
@@ -16,26 +49,24 @@ const createCard = (
   const cardTitle = cardElement.querySelector(".card__title");
   const cardLikeCount = cardElement.querySelector(".card__like-count");
 
-  cardElement.id = card._id;
+  // использую id для удаления карточки, напрямую не понимаю как передать
+  cardElement.dataset.cardId = card._id;
   cardElement.dataset.ownerId = card.owner._id;
   cardImage.src = card.link;
   cardImage.alt = card.description;
   cardTitle.textContent = card.name;
 
   // render likes
-  let likesAmount = 0;
-  card.likes.forEach((like) => {
-    if (like.name === card.owner.name) {
-      cardLikeButton.classList.add("card__like-button_is-active");
-    }
-    likesAmount += 1;
-  });
-  cardLikeCount.textContent = likesAmount;
+  cardLikeCount.textContent = card.likes.length;
+  const isLiked = card.likes.some((like) => like._id === userId);
+  if (isLiked) {
+    cardLikeButton.classList.add("card__like-button_is-active");
+  }
 
   // delete card
-  if (card.owner.name === userInfo.name) {
+  if (card.owner._id === userId) {
     cardDeleteButton.addEventListener("click", (evt) => {
-      deleteCardFn(evt);
+      deleteCardFn(evt, card._id);
     });
   } else {
     cardDeleteButton.remove();
@@ -43,7 +74,7 @@ const createCard = (
 
   // like card
   cardLikeButton.addEventListener("click", (evt) => {
-    likeCardFn(evt);
+    likeCardFn(evt, card._id);
   });
 
   // image popup
@@ -56,7 +87,7 @@ const createCard = (
 
 const renderCard = (
   item,
-  userInfo,
+  userId,
   container,
   likeCard,
   deleteCard,
@@ -65,7 +96,7 @@ const renderCard = (
 ) => {
   const cardElement = createCard(
     item,
-    userInfo,
+    userId,
     deleteCard,
     likeCard,
     openFullImageFn,
@@ -77,4 +108,4 @@ const renderCard = (
   }
 };
 
-export { renderCard };
+export { renderCard, likeCard, deleteCard };
