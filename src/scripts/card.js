@@ -1,50 +1,7 @@
-import { putLike, deleteLike, deleteCard as deleteCardFromServer } from "./api";
-
 // selectors
 const cardTemplate = document.querySelector("#card-template").content;
 
 // functions
-const likeCard = async (evt) => {
-  let currentLikes = evt.target.parentNode.querySelector(".card__like-count");
-
-  if (evt.target.classList.contains("card__like-button_is-active")) {
-    deleteLike(evt.target.closest(".card").id)
-      .then((updatedCard) => {
-        evt.target.classList.remove("card__like-button_is-active");
-        currentLikes.textContent = updatedCard.likes.reduce(
-          (accum, nextVal) => accum + 1,
-          0,
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  } else {
-    putLike(evt.target.closest(".card").id)
-      .then((updatedCard) => {
-        evt.target.classList.add("card__like-button_is-active");
-        currentLikes.textContent = updatedCard.likes.reduce(
-          (accum, nextVal) => accum + 1,
-          0,
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-};
-
-const deleteCard = (evt) => {
-  const parent = evt.target.closest(".card");
-  deleteCardFromServer(parent.id)
-    .then((result) => {
-      parent.remove();
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
-
 const createCard = (
   card,
   userInfo,
@@ -66,14 +23,14 @@ const createCard = (
   cardTitle.textContent = card.name;
 
   // render likes
-  let amountOfLikes = 0;
+  let likesAmount = 0;
   card.likes.forEach((like) => {
     if (like.name === card.owner.name) {
       cardLikeButton.classList.add("card__like-button_is-active");
     }
-    amountOfLikes += 1;
+    likesAmount += 1;
   });
-  cardLikeCount.textContent = amountOfLikes;
+  cardLikeCount.textContent = likesAmount;
 
   // delete card
   if (card.owner.name === userInfo.name) {
@@ -120,4 +77,4 @@ const renderCard = (
   }
 };
 
-export { renderCard, likeCard, deleteCard };
+export { renderCard };

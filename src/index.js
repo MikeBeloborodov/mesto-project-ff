@@ -1,8 +1,16 @@
 import "./index.css";
-import { renderCard, likeCard, deleteCard } from "./scripts/card";
+import { renderCard } from "./scripts/card";
 import { closeModal, openModal, closeModalOnOverlay } from "./scripts/modal";
 import { clearValidation, enableValidation } from "./scripts/validation";
-import { getInitialInfo, postNewCard, updateUserProfile } from "./scripts/api";
+import {
+  getInitialInfo,
+  postNewCard,
+  updateUserAvatar,
+  updateUserProfile,
+  putLike,
+  deleteLike,
+  deleteCard as deleteCardFromServer,
+} from "./scripts/api";
 
 // selectors
 const placesList = document.querySelector(".places__list");
@@ -18,6 +26,11 @@ const popupNewCardForm = document.forms["new-place"];
 const popupImageElement = document.querySelector(".popup_type_image");
 const popupImage = popupImageElement.querySelector(".popup__image");
 const popupCaption = popupImageElement.querySelector(".popup__caption");
+const popupAvatar = document.querySelector(".popup_type_avatar");
+const popupAvatarForm = document.forms["edit-avatar"];
+const avatarEditButton = document.querySelector(".profile__image-container");
+const popupConfirm = document.querySelector(".popup_type_confirm");
+const popupConfirmButton = popupConfirm.querySelector(".popup__button");
 
 const validationConfig = {
   formSelector: ".popup__form",
@@ -29,6 +42,64 @@ const validationConfig = {
 };
 
 //functions
+const likeCard = async (evt) => {
+  let currentLikes = evt.target.parentNode.querySelector(".card__like-count");
+
+  if (evt.target.classList.contains("card__like-button_is-active")) {
+    deleteLike(evt.target.closest(".card").id)
+      .then((updatedCard) => {
+        evt.target.classList.remove("card__like-button_is-active");
+        currentLikes.textContent = updatedCard.likes.reduce(
+          (accum, nextVal) => accum + 1,
+          0,
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    putLike(evt.target.closest(".card").id)
+      .then((updatedCard) => {
+        evt.target.classList.add("card__like-button_is-active");
+        currentLikes.textContent = updatedCard.likes.reduce(
+          (accum, nextVal) => accum + 1,
+          0,
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+};
+
+const deleteCard = (evt) => {
+  const parent = evt.target.closest(".card");
+  openModal(popupConfirm);
+  popupConfirm.addEventListener("click", (evt) => {
+    closeModalOnOverlay(evt);
+  });
+  popupConfirmButton.addEventListener("click", (evt) => {
+    deleteCardFromServer(parent.id)
+      .then((result) => {
+        parent.remove();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        closeModal(popupConfirm);
+      });
+  });
+};
+
+const renderLoading = (isLoading, button) => {
+  if (isLoading) {
+    button.textContent = "Сохранение...";
+  } else {
+    button.textContent = "Сохранить";
+  }
+};
+
 const fillProfileInfo = (userInfo) => {
   profileTitle.textContent = userInfo.name;
   profileDescription.textContent = userInfo.about;
@@ -48,7 +119,6 @@ const renderInitialCards = (initialCards, userInfo) => {
   });
 };
 
-// cards
 const openImagePopup = (imageURL, imageAlt, title) => {
   popupImage.src = imageURL;
   popupImage.alt = imageAlt;
@@ -56,20 +126,78 @@ const openImagePopup = (imageURL, imageAlt, title) => {
   openModal(popupImageElement);
 };
 
-// profile
 const handleProfileFormSubmit = async (evt) => {
   evt.preventDefault();
+  renderLoading(true, popupProfileForm.querySelector(".popup__button"));
   updateUserProfile({
     name: popupProfileForm.name.value,
     about: popupProfileForm.description.value,
   })
     .then((updatedProfile) => {
       fillProfileInfo(updatedProfile);
-      closeModal(popupProfile);
-      clearValidation(popupProfile, validationConfig);
     })
     .catch((err) => {
       console.log(err);
+    })
+    .finally(() => {
+      renderLoading(false, popupProfileForm.querySelector(".popup__button"));
+      closeModal(popupProfile);
+      clearValidation(popupProfileForm, validationConfig);
+    });
+};
+
+const handleAvatarFormSubmit = async (evt) => {
+  evt.preventDefault();
+  /*
+  Пытался проверить статус и заголовки ссылок на аватарки,
+  но они выкидывают CORS ошибки. no-cors не помогает.
+
+  fetch(popupAvatarForm.link.value, {
+    method: "HEAD",
+    mode: 'no-cors'
+  }).then((res) => console.log(res));
+   */
+  renderLoading(true, popupAvatarForm.querySelector(".popup__button"));
+  updateUserAvatar(popupAvatarForm.link.value)
+    .then((updatedProfile) => {
+      fillProfileInfo(updatedProfile);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      renderLoading(false, popupAvatarForm.querySelector(".popup__button"));
+      closeModal(popupAvatar);
+      clearValidation(popupAvatarForm, validationConfig);
+    });
+};
+
+const handleNewCardFormSubmit = async (evt) => {
+  evt.preventDefault();
+  renderLoading(true, popupNewCardForm.querySelector(".popup__button"));
+  const name = popupNewCardForm.elements["place-name"].value;
+  const link = popupNewCardForm.elements.link.value;
+  const userInfo = { name: profileTitle.textContent };
+  postNewCard({ name, link })
+    .then((newCard) => {
+      renderCard(
+        newCard,
+        userInfo,
+        placesList,
+        likeCard,
+        deleteCard,
+        openImagePopup,
+        "start",
+      );
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      renderLoading(false, popupNewCardForm.querySelector(".popup__button"));
+      closeModal(popupNewCard);
+      popupNewCardForm.reset();
+      clearValidation(popupNewCardForm, validationConfig);
     });
 };
 
@@ -87,7 +215,7 @@ popupImageElement.addEventListener("click", (evt) => {
 
 //profile popup
 profileEditButton.addEventListener("click", () => {
-  clearValidation(popupProfile, validationConfig);
+  clearValidation(popupProfileForm, validationConfig);
   fillProfilePopup(
     popupProfileForm,
     profileTitle.textContent,
@@ -102,37 +230,27 @@ popupProfile.addEventListener("click", (evt) => {
   closeModalOnOverlay(evt);
 });
 
+// edit avatar popup
+avatarEditButton.addEventListener("click", (evt) => {
+  clearValidation(popupAvatarForm, validationConfig);
+  popupAvatarForm.reset();
+  openModal(popupAvatar);
+});
+
+popupAvatarForm.addEventListener("submit", handleAvatarFormSubmit);
+
+popupAvatar.addEventListener("click", (evt) => {
+  closeModalOnOverlay(evt);
+});
+
 // add card popup
 newCardButton.addEventListener("click", () => {
   popupNewCardForm.reset();
-  clearValidation(popupNewCard, validationConfig);
+  clearValidation(popupNewCardForm, validationConfig);
   openModal(popupNewCard);
 });
 
-popupNewCardForm.addEventListener("submit", async (evt) => {
-  evt.preventDefault();
-  const name = popupNewCardForm.elements["place-name"].value;
-  const link = popupNewCardForm.elements.link.value;
-  const userInfo = { name: profileTitle.textContent };
-  postNewCard({ name, link })
-    .then((newCard) => {
-      renderCard(
-        newCard,
-        userInfo,
-        placesList,
-        likeCard,
-        deleteCard,
-        openImagePopup,
-        "start",
-      );
-      closeModal(popupNewCard);
-      popupNewCardForm.reset();
-      clearValidation(popupNewCard, validationConfig);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
+popupNewCardForm.addEventListener("submit", handleNewCardFormSubmit);
 
 popupNewCard.addEventListener("click", (evt) => {
   closeModalOnOverlay(evt);

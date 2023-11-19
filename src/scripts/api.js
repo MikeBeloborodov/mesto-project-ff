@@ -115,6 +115,23 @@ const deleteCard = async (cardId) => {
   });
 };
 
+const updateUserAvatar = async (avatarLink) => {
+  return new Promise((resolve, reject) => {
+    fetch(config.baseUrl + "/users/me/avatar", {
+      method: "PATCH",
+      headers: config.headers,
+      body: JSON.stringify({
+        avatar: avatarLink,
+      }),
+    }).then((res) => {
+      if (res.ok) {
+        resolve(res.json());
+      }
+      reject(`Ошибка: ${res.status}`);
+    });
+  });
+};
+
 // exports
 export {
   getInitialCards,
@@ -125,4 +142,5 @@ export {
   putLike,
   deleteLike,
   deleteCard,
+  updateUserAvatar,
 };
